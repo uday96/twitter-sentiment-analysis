@@ -39,9 +39,13 @@ DEFAULT_APPS = [
     'django.contrib.staticfiles',
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    'crispy_forms',
+]
 
-LOCAL_APPS = []
+LOCAL_APPS = [
+    'tweets',
+]
 
 INSTALLED_APPS = THIRD_PARTY_APPS + DEFAULT_APPS + LOCAL_APPS
 
@@ -124,3 +128,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+# Variables that contains the user credentials to access Twitter API 
+# Authentication details. To  obtain these visit dev.twitter.com
+
+ACCESS_TOKEN = '833324191667539970-7Y26je8CVtWbxEtJEJt8jQLRiaxtvA1'
+ACCESS_SECRET = 'SBsipdPIWkZFRB1bGnrm8ZDzl1gtkNGhuiPN4vzSy387b'
+CONSUMER_KEY = 'uVbeqhgir8Q5hGJS9h03QDzNG'
+CONSUMER_SECRET = 'ErEcFwdAWL5npi14d7NOMurbfSIxN3OqUBpk9nygUkFJ83S9yY'
+#API_KEY = CONSUMER_KEY
+#API_SECRET = CONSUMER_SECRET
