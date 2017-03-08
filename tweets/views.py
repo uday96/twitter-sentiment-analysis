@@ -29,18 +29,13 @@ class StreamTweets(View):
 			print 'valid form'
 			keywords = form.cleaned_data['Keywords']
 			location = form.cleaned_data['Location']
-			print "Location : "+location
+			latlng = []
+			latlng.append(form.cleaned_data['Latitude'])
+			latlng.append(form.cleaned_data['Longitude'])
+			print "Location : "+location+" "+str(latlng)
 			keywords = keywords.split('\r\n')
 			print "KeyWords : "+str(len(keywords))
 			for word in keywords:
 				print "	"+word
 			streamTwitter(keywords,location)
 		return HttpResponse("Filtered Tweets!!")
-
-class MapsInterface(View):
-
-	template_name = "maps.html"
-
-	def get(self,request):
-		print "Maps Interface GET"
-		return render(request,self.template_name)
