@@ -36,3 +36,11 @@ class StreamTweets(View):
 				print "	"+word
 			streamTwitter(keywords,location)
 		return HttpResponse("Filtered Tweets!!")
+
+class MapsInterface(View):
+
+	template_name = "maps.html"
+
+	def get(self,request):
+		print "Maps Interface GET"
+		return render(request,self.template_name)

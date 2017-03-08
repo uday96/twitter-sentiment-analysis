@@ -1,3 +1,4 @@
+{% load easy_maps_tags %}
 {% load crispy_forms_tags %}
 <!DOCTYPE html>
 <html>
@@ -16,6 +17,9 @@
               <button type="submit" class="btn btn-primary">Submit</button>
           </form>
       </div>
+    </div>
+    <div align="center">
+        {% easy_map "Russia, Ekaterinburg, Mira 32" 500 300 %}
     </div>
   </body>
 </html>
