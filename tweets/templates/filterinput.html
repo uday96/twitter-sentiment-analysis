@@ -1,4 +1,3 @@
-{% load easy_maps_tags %}
 {% load crispy_forms_tags %}
 <!DOCTYPE html>
 <html>
@@ -6,7 +5,7 @@
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" />
     <style>
       #map {
-        height: 350px;
+        height: 500px;
         width: 100%;
        }
     </style>
@@ -32,23 +31,40 @@
           zoom: 4,
           center: india
         });
-        var marker = new google.maps.Marker({
-          position: india,
-          map: map,
-          draggable:true,
-          title:"Drag me!"
-        });
-        marker.addListener('dragend',handleEvent);
+                
+        var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.RECTANGLE,
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_CENTER,
+          drawingModes: ['rectangle']
+        },
+        RectangleOptions: {
+          fillColor: '#ffff00',
+          fillOpacity: 1,
+          strokeWeight: 5,
+          clickable: false,
+          editable: true,
+          draggable: true,
+          zIndex: 1
+        }
+      });
+      drawingManager.setMap(map);
+      google.maps.event.addListener(drawingManager, 'rectanglecomplete',handleEvent);
       }
-      function handleEvent(event) {
-        console.log("Marker Changed!");
-        var pos = {"lat":event.latLng.lat(), "lng":event.latLng.lng()};
-        console.log(pos);
-        document.getElementById("inputform")['Latitude'].value = event.latLng.lat();
-        document.getElementById("inputform")['Longitude'].value = event.latLng.lng();
+
+      function handleEvent(rectangle) {
+        console.log("Rectangle created");
+        var bounds = rectangle.getBounds();
+        console.log(bounds.toJSON());
+        console.log(bounds.toString());
+        console.log(bounds.getSouthWest().toJSON());
+        console.log(bounds.getNorthEast().toJSON());
+        console.log(bounds.getCenter().toJSON());
+        document.getElementById("inputform")['LatLng'].value = bounds.toString();
         var geocoder;
         geocoder = new google.maps.Geocoder();
-        var latlng = event.latLng;
+        var latlng = bounds.getCenter();
 
         geocoder.geocode(
             {'latLng': latlng}, 
@@ -78,7 +94,7 @@
       }
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdDohUJXJ09nNIk3IU08rUByK4fdQEeC0&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdDohUJXJ09nNIk3IU08rUByK4fdQEeC0&callback=initMap&libraries=drawing">
     </script>
   </body>
 </html>

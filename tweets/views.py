@@ -6,6 +6,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, DeleteView
 from .forms import StreamFilterInputForm
 from twitter_streaming import streamTwitter
+import re
 
 class Home(View):
 
@@ -27,15 +28,20 @@ class StreamTweets(View):
 		form = StreamFilterInputForm(request.POST)
 		if form.is_valid():
 			print 'valid form'
-			keywords = form.cleaned_data['Keywords']
+			keywords = form.cleaned_data['Keywords']	
 			location = form.cleaned_data['Location']
-			latlng = []
-			latlng.append(form.cleaned_data['Latitude'])
-			latlng.append(form.cleaned_data['Longitude'])
-			print "Location : "+location+" "+str(latlng)
+			latlng_string = form.cleaned_data['LatLng']
+			print "Location : "+location+"\n"+str(latlng_string)
 			keywords = keywords.split('\r\n')
 			print "KeyWords : "+str(len(keywords))
 			for word in keywords:
 				print "	"+word
-			streamTwitter(keywords,location)
+			latlng_pairs = re.findall('(\(.+?\))',latlng_string[1:-1])
+			latlng_bounds=[]
+			for latlng_pair in latlng_pairs:
+				latlngs = latlng_pair[1:-1].split(',')
+				latlng_bounds.append(float(latlngs[1]))
+				latlng_bounds.append(float(latlngs[0]))
+			print latlng_bounds
+			streamTwitter(keywords,latlng_bounds)
 		return HttpResponse("Filtered Tweets!!")
