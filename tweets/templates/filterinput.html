@@ -3,6 +3,12 @@
 <html>
   <head>
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      #map {
+        height: 500px;
+        width: 100%;
+       }
+    </style>
   </head>
   <body>
     <div class="panel-info">
@@ -10,12 +16,85 @@
         <p><h1><center>{{header}}</center><br></h1></p>
       </div>
       <div class="panel-body" style="width:30%">
-          <form method="post" class="uniForm" >
+          <form method="post" id="inputform">
               {% csrf_token %}
               {{ form|crispy }}
               <button type="submit" class="btn btn-primary">Submit</button>
           </form>
       </div>
     </div>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+        var india = {lat: 20.5937, lng: 78.9629};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: india
+        });
+                
+        var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.RECTANGLE,
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_CENTER,
+          drawingModes: ['rectangle']
+        },
+        RectangleOptions: {
+          fillColor: '#ffff00',
+          fillOpacity: 1,
+          strokeWeight: 5,
+          clickable: false,
+          editable: true,
+          draggable: true,
+          zIndex: 1
+        }
+      });
+      drawingManager.setMap(map);
+      google.maps.event.addListener(drawingManager, 'rectanglecomplete',handleEvent);
+      }
+
+      function handleEvent(rectangle) {
+        console.log("Rectangle created");
+        var bounds = rectangle.getBounds();
+        console.log(bounds.toJSON());
+        console.log(bounds.toString());
+        console.log(bounds.getSouthWest().toJSON());
+        console.log(bounds.getNorthEast().toJSON());
+        console.log(bounds.getCenter().toJSON());
+        document.getElementById("inputform")['LatLng'].value = bounds.toString();
+        var geocoder;
+        geocoder = new google.maps.Geocoder();
+        var latlng = bounds.getCenter();
+
+        geocoder.geocode(
+            {'latLng': latlng}, 
+            function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                        if (results[0]) {
+                            var add= results[0].formatted_address ;
+                            var  value=add.split(",");
+                            console.log(value);
+                            count=value.length;
+                            country=value[count-1];
+                            state=value[count-2];
+                            var loc = country+" - "+state
+                            document.getElementById("inputform")['Location'].value = loc;
+                        }
+                        else  {
+                            alert("Location not found");
+                            document.getElementById("inputform")['Location'].value = "";
+                        }
+                }
+                 else {
+                    alert("Geocoder failed due to: " + status);
+                    document.getElementById("inputform")['Location'].value = "";
+                }
+            }
+        );
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdDohUJXJ09nNIk3IU08rUByK4fdQEeC0&callback=initMap&libraries=drawing">
+    </script>
   </body>
 </html>

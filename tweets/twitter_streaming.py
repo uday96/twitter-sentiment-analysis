@@ -3,15 +3,18 @@ import threading, logging, time
 from kafka.client import KafkaClient
 from kafka.consumer import SimpleConsumer
 from kafka.producer import SimpleProducer
+from kafka import KafkaProducer
 from django.conf import settings
-import string
+import string, json
 
 consumer_key = settings.CONSUMER_KEY
 consumer_secret = settings.CONSUMER_SECRET
 access_token = settings.ACCESS_TOKEN
 access_token_secret = settings.ACCESS_SECRET
 
-mytopic='TwitterStream'# ex. 'twitterstream', or 'test' ...
+mytopic='test'
+
+
 
 ######################################################################
 #Create a handler for the streaming data that stays open...
@@ -34,18 +37,29 @@ class StdOutListener(tweepy.StreamListener):
         
         # Schema changed to add the tweet text
         self.tweet_count = self.tweet_count + 1
-        if self.tweet_count < 10:
+        if self.tweet_count < 5:
             #print '%d,%d,%d,%s,%s' % (status.user.followers_count, status.user.friends_count,status.user.statuses_count, status.text, status.user.screen_name)
             message =  str(status.user.followers_count) + ',' + str(status.user.friends_count) + ',' + str(status.user.statuses_count) + ',' + status.text + ',' + status.user.screen_name
             msg = filter(lambda x: x in string.printable, message)
             print "\n"+msg+"\n"
+            tweetsdump = open("tweetsdump.txt","a")
+            tweetsdump.write(json.dumps(status._json, indent=4))
+            tweetsdump.write("\n\n")
+            tweetsdump.close()
         else:
             return False
-        # try:
-        #     #write out to kafka topic
-        #     producer.send_messages(mytopic, str(msg))
-        # except Exception, e:
-        #     return True
+                
+        try:
+            #write out to kafka topic
+            producer = KafkaProducer(bootstrap_servers='localhost:9092')
+            future = producer.send('test', (str(json.dumps(status._json, indent=4))+"\n"))
+            record_metadata = future.get(timeout=10)
+            print record_metadata.topic
+            print record_metadata.partition
+            print record_metadata.offset
+        except Exception, e:
+            print str(e)
+            return True
         
         return True
        
@@ -57,20 +71,23 @@ class StdOutListener(tweepy.StreamListener):
     def on_error(self, status_code):
 
         print('Got an error with status code: ' + str(status_code))
-        return True # To continue listening
+        return False # To continue listening
  
     def on_timeout(self):
 
         print('Timeout...')
-        return True # To continue listening
+        return False # To continue listening
 
 ######################################################################
 #Main Loop Init
 ######################################################################
 
 
-def streamTwitter(keywords,location):
+def streamTwitter(keywords,latlngs):
     
+    tweetsdump = open("tweetsdump.txt","w")
+    tweetsdump.close()
+
     listener = StdOutListener()
 
     #sign oath cert
@@ -88,8 +105,7 @@ def streamTwitter(keywords,location):
     #Sample delivers a stream of 1% (random selection) of all tweets
     ######################################################################
     #stream.sample()
-    #client = KafkaClient("localhost:9092")
-    #producer = SimpleProducer(client)
+    
 
     ######################################################################
     #Custom Filter rules pull all traffic for those filters in real time.
@@ -98,5 +114,7 @@ def streamTwitter(keywords,location):
     #A Good demo stream of reasonable amount
     #stream.filter(track=['actian', 'BigData', 'Hadoop', 'Predictive', 'Quantum', 'bigdata', 'Analytics', 'IoT'])
     #Hadoop Summit following
-    stream.filter(track=keywords,languages=['en'])
-
+    stream.filter(track=keywords,locations=latlngs)
+    #client = KafkaClient("localhost:9092")
+    #producer = SimpleProducer(client)
+    
