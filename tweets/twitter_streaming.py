@@ -28,20 +28,82 @@ class StdOutListener(tweepy.StreamListener):
     ######################################################################
     #For each status event
     ######################################################################
-
+    tweet_flag =0
     tweet_count =0
 
     def on_status(self, status):
         print keywords
-        self.tweet_count = self.tweet_count + 1
         if self.tweet_count < 5:
             message =  status.text
-            msg = filter(lambda x: x in string.printable, message)
-            print "\n"+msg+"\n"
-            tweetsdump = open("tweetsdump.txt","a")
-            tweetsdump.write(json.dumps(status._json, indent=4))
-            tweetsdump.write("\n\n")
-            tweetsdump.close()
+            message_lower = message.lower()
+            for i in range(len(keywords)):
+                keyword = " "+ keywords[i] + " "
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = " "+ keywords[i] + "."
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = " "+ keywords[i] + ","
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = " "+ keywords[i] + "?"
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = " "+ keywords[i] + "!"
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = "@"+ keywords[i] + " "
+                if keyword.lower() in message_lower:
+                    self.tweet_flag = 1
+                    break
+                keyword = keywords[i] + " "
+                if message_lower.startswith(keyword):
+                    self.tweet_flag = 1
+                    break
+                keyword = " " + keywords[i]
+                if message_lower.endswith(keyword):
+                    self.tweet_flag = 1
+                    break
+                entity_field = status.entities
+                if entity_field['user_mentions'] is not None:
+                    for j in range(len(entity_field['user_mentions'])):
+                        if entity_field['user_mentions'][j]['screen_name'].lower() == keywords[i].lower():
+                            self.tweet_flag = 1
+                            break
+                if entity_field['hashtags'] is not None and self.tweet_flag == 0:
+                    for j in range(len(entity_field['hashtags'])):
+                        if entity_field['hashtags'][j]['text'].lower() == keywords[i].lower():
+                            self.tweet_flag = 1
+                            break
+                if entity_field['urls'] is not None and self.tweet_flag == 0:
+                    for j in range(len(entity_field['urls'])):
+                        if entity_field['urls'][j]['expanded_url'].lower() == keywords[i].lower() or entity_field['urls'][j]['display_url'].lower() == keywords[i].lower():
+                            self.tweet_flag = 1
+                            break
+                if "media" in entity_field and self.tweet_flag == 0:
+                    for j in range(len(entity_field['media'])):
+                        if entity_field['media'][j]['expanded_url'].lower() == keywords[i].lower() or entity_field['media'][j]['display_url'].lower() == keywords[i].lower():
+                            self.tweet_flag = 1
+                            break
+                if self.tweet_flag == 1:
+                    break
+            #msg = filter(lambda x: x in string.printable, message)
+            #print "\n"+msg+"\n"
+            if self.tweet_flag == 1:
+                msg = filter(lambda x: x in string.printable, message)
+                print "\n"+msg+"\n"
+                #print "Tweet Accepted\n"
+                tweetsdump = open("tweetsdump.txt","a")
+                tweetsdump.write(json.dumps(status._json, indent=4))
+                tweetsdump.write("\n\n")
+                tweetsdump.close()
+                self.tweet_count = self.tweet_count + 1
+            self.tweet_flag = 0
         else:
             return False
                 
