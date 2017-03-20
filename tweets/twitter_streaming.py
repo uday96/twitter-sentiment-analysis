@@ -58,35 +58,26 @@ class StdOutListener(tweepy.StreamListener):
                 if self.tweet_flag == 1:
                     break
             if self.tweet_flag == 1:
-                msg = filter(lambda x: x in string.printable, message)
-                print "\n"+msg+"\n"
-                tweetsdump = open("tweetsdump.txt","a")
-                tweetsdump.write(json.dumps(status._json, indent=4))
-                tweetsdump.write("\n\n")
-                tweetsdump.close()
                 self.tweet_count = self.tweet_count + 1
+                msg = filter(lambda x: x in string.printable, message)
+                print "\n"+msg+"\n"                
+                try:
+                    #write out to kafka topic
+                    producer = KafkaProducer(bootstrap_servers='localhost:9092')
+                    future = producer.send(mytopic, (str(json.dumps(status._json, indent=4))+"\n"))
+                    record_metadata = future.get(timeout=10)
+                    print record_metadata.topic
+                    print record_metadata.partition
+                    print record_metadata.offset
+                except Exception, e:
+                    print str(e)
+                    return True
             self.tweet_flag = 0
         else:
-            return False
+            return False        
                 
-        # try:
-        #     #write out to kafka topic
-        #     producer = KafkaProducer(bootstrap_servers='localhost:9092')
-        #     future = producer.send('test', (str(json.dumps(status._json, indent=4))+"\n"))
-        #     record_metadata = future.get(timeout=10)
-        #     print record_metadata.topic
-        #     print record_metadata.partition
-        #     print record_metadata.offset
-        # except Exception, e:
-        #     print str(e)
-        #     return True
-        
         return True
-       
-    ######################################################################
-    #Supress Failure to keep demo running... In a production situation 
-    #Handle with seperate handler
-    ######################################################################
+
  
     def on_error(self, status_code):
 
@@ -103,9 +94,6 @@ def streamTwitter(keywordargs,latlngs):
     
     global keywords
     keywords = keywordargs
-
-    tweetsdump = open("tweetsdump.txt","w")
-    tweetsdump.close()
 
     listener = StdOutListener()
 

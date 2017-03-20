@@ -41,7 +41,6 @@ DEFAULT_APPS = [
 
 THIRD_PARTY_APPS = [
     'crispy_forms',
-    'easy_maps',
 ]
 
 LOCAL_APPS = [
