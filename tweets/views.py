@@ -7,6 +7,8 @@ from django.views.generic.edit import UpdateView, DeleteView
 from .forms import StreamFilterInputForm
 from twitter_streaming import streamTwitter
 import re
+from kafka import KafkaConsumer
+from twitter_streaming import mytopic
 
 class Home(View):
 
@@ -44,4 +46,13 @@ class StreamTweets(View):
 				latlng_bounds.append(float(latlngs[0]))
 			print latlng_bounds
 			streamTwitter(keywords,latlng_bounds)
-		return HttpResponse("Filtered Tweets!!")
+			return redirect("visualise/")
+
+
+class VisualiseTweets(View):
+
+	template_name = "map.html"
+
+	def get(self,request):
+		print "Visualise Tweets GET"
+		return render(request,self.template_name)

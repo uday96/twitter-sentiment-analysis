@@ -6,6 +6,7 @@ from kafka.producer import SimpleProducer
 from kafka import KafkaProducer
 from django.conf import settings
 import string, json
+from django.shortcuts import render, redirect
 
 consumer_key = settings.CONSUMER_KEY
 consumer_secret = settings.CONSUMER_SECRET
@@ -14,7 +15,7 @@ access_token_secret = settings.ACCESS_SECRET
 
 mytopic='test'
 keywords = []
-
+streams = []
 
 ######################################################################
 #Create a handler for the streaming data that stays open...
@@ -33,7 +34,7 @@ class StdOutListener(tweepy.StreamListener):
 
     def on_status(self, status):
         print keywords
-        if self.tweet_count < 10:
+        if self.tweet_count < 5:
             message =  status.text
             for i in range(len(keywords)):
                 if keywords[i].lower() in message.lower():
@@ -92,6 +93,9 @@ class StdOutListener(tweepy.StreamListener):
 
 def streamTwitter(keywordargs,latlngs):
     
+    for existing_streams in streams:
+        existing_streams.disconnect()
+
     global keywords
     keywords = keywordargs
 
@@ -102,6 +106,5 @@ def streamTwitter(keywordargs,latlngs):
     auth.set_access_token(access_token, access_token_secret)
 
     stream = tweepy.Stream(auth, listener)
-
-    stream.filter(locations=latlngs)
-    
+    streams.append(stream)
+    stream.filter(locations=latlngs,async=True)
