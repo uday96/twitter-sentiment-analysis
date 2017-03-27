@@ -29,6 +29,10 @@
         zoom: 3
       });
 
+      var infowindow = new google.maps.InfoWindow({
+        content: "holding..."
+      });
+
       setInterval(function(){
         console.log("Consuming Tweets");
          var url = "/tweets/consume/";//use any url that have json data  
@@ -70,7 +74,14 @@
           draggable: false,
           animation: google.maps.Animation.DROP,
           position: location
+          html: tweet.html
         });
+
+        google.maps.event.addListener(marker, 'click', function () {
+          infowindow.setContent(this.html);
+          infowindow.open(map, this);
+        });
+
       }
 
     </script>
