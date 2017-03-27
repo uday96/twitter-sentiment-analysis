@@ -36,6 +36,7 @@
       setInterval(function(){
         console.log("Consuming Tweets");
          var url = "/tweets/consume/";//use any url that have json data  
+         var urlx = url;
          var request;        
          if(window.XMLHttpRequest){    
           request=new XMLHttpRequest();//for Chrome, mozilla etc  
@@ -44,36 +45,38 @@
           request=new ActiveXObject("Microsoft.XMLHTTP");//for IE only  
          }
          request.onreadystatechange  = function(){  
-          if (request.readyState == 4  )  
-          {  
+          if (this.readyState == 4 && this.status == 200)  
+          {
             var jsonObj = JSON.parse(request.responseText);
             console.log(jsonObj)
-            var tweets_arr = jsonObj.data
+            var tweets_arr = jsonObj["data"];
+            //console.log(tweets_arr);
             for(tweet in tweets_arr){
-              addMarker(tweet);
+              console.log(tweets_arr[tweet]);
+              addMarker(tweets_arr[tweet]);
             }
           }  
-       }  
-       request.open("GET", url, true);  
+       } 
+       console.log(urlx);
+       request.open("GET", urlx, true);  
        request.send();      
       }, 10000);
 
 
       function addMarker(tweet_json){
-        location = {lat: 59.327, lng: 18.067};
-        var tweet = JSON.parse(tweet_json);
-        if(!(tweet.geo===null)){
-          if(tweet.geo.type == "Point"){
-            var coords = tweet.geo.coordinates;
-            location.lat = coords[0];
-            location.lng = coords[1];
+        var c_location = {lat: 59.327, lng: 18.067};
+        if(!(tweet_json.geo===null)){
+          if(tweet_json.geo.type == "Point"){
+            var coords = tweet_json.geo.coordinates;
+            c_location.lat = coords[0];
+            c_location.lng = coords[1];
           }          
         }
         var marker = new google.maps.Marker({
           map: map,
           draggable: false,
           animation: google.maps.Animation.DROP,
-          position: location
+          position: c_location
           html: tweet.html
         });
 
