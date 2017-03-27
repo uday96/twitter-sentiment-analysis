@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.views.generic.list import ListView
@@ -6,7 +6,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import UpdateView, DeleteView
 from .forms import StreamFilterInputForm
 from twitter_streaming import streamTwitter
-import re
+import re, json
 from kafka import KafkaConsumer
 from twitter_streaming import mytopic
 
@@ -48,7 +48,6 @@ class StreamTweets(View):
 			streamTwitter(keywords,latlng_bounds)
 			return redirect("visualise/")
 
-
 class VisualiseTweets(View):
 
 	template_name = "map.html"
@@ -56,3 +55,54 @@ class VisualiseTweets(View):
 	def get(self,request):
 		print "Visualise Tweets GET"
 		return render(request,self.template_name)
+
+
+def createHTML(tweet):
+	contentString = '<div class="infowindow-content"><blockquote class="twitter-tweet" lang="en"><p>'
+	contentString = contentString + tweet["text"]+'</p>&mdash; '
+	contentString = contentString + tweet["user"]["name"] +' (@'+tweet["user"]["screen_name"]+')'
+	contentString = contentString + ' <a href="https://twitter.com/'+tweet["user"]["screen_name"]+'/statuses/'+tweet["id_str"]+'">'
+	contentString = contentString + '</a></blockquote></div>'
+	return contentString
+
+class ConsumeTweets(View):
+
+	def get(self,request):
+		print "Consume Tweets GET"
+		consumer = KafkaConsumer(mytopic,bootstrap_servers=['localhost:9092'])
+		i=0
+		polled = consumer.poll(100,None)
+		while(bool(polled)==False):
+			polled = consumer.poll(100,None)
+			i = i+1
+			if(i>10):
+				break
+		msgs=[]
+		for key in polled.keys():
+			if key.topic==mytopic:
+				msgrecords = polled.get(key,[])
+				for record in msgrecords:
+					tweet = json.loads(record.value)
+					try:
+						tweet_html = createHTML(tweet)
+						tweet["html"] = tweet_html
+					except Exception as e:
+						print str(e)
+					msgs.append(tweet)
+		consumer.close()
+		# m1 = json.dumps(
+		# 	{
+		# 	"geo": {
+	 #        "type": "Point", 
+	 #        "coordinates": [
+	 #            9.954165, 
+	 #            76.296083
+	 #        	]
+	 #        	}
+	 #        })
+		# msgs = []
+		# msgs.append(m1)
+		return JsonResponse({'count': len(msgs),'data': msgs})
+
+
+

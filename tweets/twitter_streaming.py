@@ -13,7 +13,7 @@ consumer_secret = settings.CONSUMER_SECRET
 access_token = settings.ACCESS_TOKEN
 access_token_secret = settings.ACCESS_SECRET
 
-mytopic='test'
+mytopic='twitter'
 keywords = []
 streams = []
 
@@ -34,7 +34,7 @@ class StdOutListener(tweepy.StreamListener):
 
     def on_status(self, status):
         print keywords
-        if self.tweet_count < 5:
+        if self.tweet_count < 100:
             message =  status.text
             for i in range(len(keywords)):
                 if keywords[i].lower() in message.lower():
