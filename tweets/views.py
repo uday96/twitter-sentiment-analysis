@@ -68,40 +68,40 @@ def createHTML(tweet):
 class ConsumeTweets(View):
 
 	def get(self,request):
-		print "Consume Tweets GET"
-		consumer = KafkaConsumer(mytopic,bootstrap_servers=['localhost:9092'])
-		i=0
-		polled = consumer.poll(100,None)
-		while(bool(polled)==False):
-			polled = consumer.poll(100,None)
-			i = i+1
-			if(i>10):
-				break
-		msgs=[]
-		for key in polled.keys():
-			if key.topic==mytopic:
-				msgrecords = polled.get(key,[])
-				for record in msgrecords:
-					tweet = json.loads(record.value)
-					try:
-						tweet_html = createHTML(tweet)
-						tweet["html"] = tweet_html
-					except Exception as e:
-						print str(e)
-					msgs.append(tweet)
-		consumer.close()
-		# m1 = json.dumps(
-		# 	{
-		# 	"geo": {
-	 #        "type": "Point", 
-	 #        "coordinates": [
-	 #            9.954165, 
-	 #            76.296083
-	 #        	]
-	 #        	}
-	 #        })
-		# msgs = []
-		# msgs.append(m1)
+		# print "Consume Tweets GET"
+		# consumer = KafkaConsumer(mytopic,bootstrap_servers=['localhost:9092'])
+		# i=0
+		# polled = consumer.poll(100,None)
+		# while(bool(polled)==False):
+		# 	polled = consumer.poll(100,None)
+		# 	i = i+1
+		# 	if(i>10):
+		# 		break
+		# msgs=[]
+		# for key in polled.keys():
+		# 	if key.topic==mytopic:
+		# 		msgrecords = polled.get(key,[])
+		# 		for record in msgrecords:
+		# 			tweet = json.loads(record.value)
+		# 			try:
+		# 				tweet_html = createHTML(tweet)
+		# 				tweet["html"] = tweet_html
+		# 			except Exception as e:
+		# 				print str(e)
+		# 			msgs.append(tweet)
+		# consumer.close()
+		m1 = {
+			"geo": {
+	        "type": "Point", 
+	        "coordinates": [
+	            9.954165, 
+	            76.296083
+	        	]
+	        	}
+	        }
+		msgs = []
+		msgs.append(m1)
+		#print msgs
 		return JsonResponse({'count': len(msgs),'data': msgs})
 
 
