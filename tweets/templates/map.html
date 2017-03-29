@@ -35,8 +35,7 @@
 
       setInterval(function(){
         console.log("Consuming Tweets");
-         var url = "/tweets/consume/";//use any url that have json data  
-         var urlx = url;
+         var urlx = "/tweets/consume/";//use any url that have json data  
          var request;        
          if(window.XMLHttpRequest){    
           request=new XMLHttpRequest();//for Chrome, mozilla etc  
@@ -48,43 +47,51 @@
           if (this.readyState == 4 && this.status == 200)  
           {
             var jsonObj = JSON.parse(request.responseText);
-            console.log(jsonObj)
+            console.log(jsonObj.count)
             var tweets_arr = jsonObj["data"];
-            //console.log(tweets_arr);
-            for(tweet in tweets_arr){
-              console.log(tweets_arr[tweet]);
-              addMarker(tweets_arr[tweet]);
+            for(tweet_ind in tweets_arr){
+              addMarker(tweets_arr[tweet_ind]);              
             }
           }  
        } 
-       console.log(urlx);
        request.open("GET", urlx, true);  
        request.send();      
       }, 10000);
 
 
-      function addMarker(tweet_json){
+      function addMarker(tweet){
         var c_location = {lat: 59.327, lng: 18.067};
-        if(!(tweet_json.geo===null)){
-          if(tweet_json.geo.type == "Point"){
-            var coords = tweet_json.geo.coordinates;
+        if(!(tweet.geo===null)){
+          if(tweet.geo.type == "Point"){
+            var coords = tweet.geo.coordinates;
             c_location.lat = coords[0];
             c_location.lng = coords[1];
           }          
         }
+        var contentString = tweet.embeddedTweet
         var marker = new google.maps.Marker({
           map: map,
           draggable: false,
           animation: google.maps.Animation.DROP,
-          position: c_location
-          html: tweet.html
+          position: c_location,
+          htmlContent: contentString,
         });
-
         google.maps.event.addListener(marker, 'click', function () {
-          infowindow.setContent(this.html);
+          infowindow.close()
+          infowindow.setContent(this.htmlContent);
           infowindow.open(map, this);
-        });
-
+          google.maps.event.addListener(infowindow, 'domready', function () {
+              ! function (d, s, id) {
+                  var js, fjs = d.getElementsByTagName(s)[0];
+                  if (!d.getElementById(id)) {
+                      js = d.createElement(s);
+                      js.id = id;
+                      js.src = "//platform.twitter.com/widgets.js";
+                      fjs.parentNode.insertBefore(js, fjs);
+                  }
+              }(document, "script", "twitter-wjs");
+          });
+        });        
       }
 
     </script>
