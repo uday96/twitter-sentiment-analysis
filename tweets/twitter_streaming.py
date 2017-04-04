@@ -13,7 +13,7 @@ consumer_secret = settings.CONSUMER_SECRET
 access_token = settings.ACCESS_TOKEN
 access_token_secret = settings.ACCESS_SECRET
 
-mytopic='twitter'
+mytopic=""
 keywords = []
 streams = []
 
@@ -91,13 +91,18 @@ class StdOutListener(tweepy.StreamListener):
         return False # To stop listening
 
 
-def streamTwitter(keywordargs,latlngs):
+def streamTwitter(keywordargs,latlngs,topic_name):
     
     for existing_streams in streams:
         existing_streams.disconnect()
+    del streams[:]
 
     global keywords
-    keywords = keywordargs
+    del keywords[:]
+    keywords.extend(keywordargs)
+
+    global mytopic
+    mytopic = topic_name
 
     listener = StdOutListener()
 
