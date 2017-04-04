@@ -64,12 +64,20 @@
 
       function addMarker(tweet){
         var c_location = {lat: 59.327, lng: 18.067};
-        if(!(tweet.geo===null)){
+        if(!(tweet.geo==null)){
           if(tweet.geo.type == "Point"){
             var coords = tweet.geo.coordinates;
             c_location.lat = coords[0];
             c_location.lng = coords[1];
           }          
+        }
+        else{
+          var polygon_coords = tweet.place.bounding_box.coordinates;
+          //console.log(polygon_coords[0]);
+          //console.log(polygon_coords[0][0]);
+          c_location.lng = (polygon_coords[0][0][0]+polygon_coords[0][1][0]+polygon_coords[0][2][0]+polygon_coords[0][3][0])/4;
+          c_location.lat = (polygon_coords[0][0][1]+polygon_coords[0][1][1]+polygon_coords[0][2][1]+polygon_coords[0][3][1])/4;
+          console.log(c_location);
         }
         var contentString = tweet.embeddedTweet
         var marker = new google.maps.Marker({
