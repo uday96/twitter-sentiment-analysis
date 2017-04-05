@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Visualise Tweets</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdDohUJXJ09nNIk3IU08rUByK4fdQEeC0"></script>
+    <script>
+      var india = {lat: 20.5937, lng: 78.9629};
+      var map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 20, lng: 10},
+        zoom: 3
+      });
+
+      var infowindow = new google.maps.InfoWindow({
+        content: "holding..."
+      });
+
+      var myurlparam = getParameterByName("topic",null)
+      console.log("Topic: "+myurlparam)
+
+      setInterval(function(){
+        console.log("Consuming Tweets");
+         var urlx = "/tweets/consume?topic="+myurlparam;//use any url that have json data  
+         var request;        
+         if(window.XMLHttpRequest){    
+          request=new XMLHttpRequest();//for Chrome, mozilla etc  
+         }    
+         else if(window.ActiveXObject){    
+          request=new ActiveXObject("Microsoft.XMLHTTP");//for IE only  
+         }
+         request.onreadystatechange  = function(){  
+          if (this.readyState == 4 && this.status == 200)  
+          {
+            var jsonObj = JSON.parse(request.responseText);
+            console.log(jsonObj.count)
+            var tweets_arr = jsonObj["data"];
+            for(tweet_ind in tweets_arr){
+              addMarker(tweets_arr[tweet_ind]);              
+            }
+          }  
+       } 
+       request.open("GET", urlx, true);  
+       request.send();      
+      }, 10000);
+
+
+      function addMarker(tweet){
+        var c_location = {lat: 59.327, lng: 18.067};
+        if(!(tweet.geo==null)){
+          if(tweet.geo.type == "Point"){
+            var coords = tweet.geo.coordinates;
+            c_location.lat = coords[0];
+            c_location.lng = coords[1];
+          }          
+        }
+        else{
+          var polygon_coords = tweet.place.bounding_box.coordinates;
+          //console.log(polygon_coords[0]);
+          //console.log(polygon_coords[0][0]);
+          c_location.lng = (polygon_coords[0][0][0]+polygon_coords[0][1][0]+polygon_coords[0][2][0]+polygon_coords[0][3][0])/4;
+          c_location.lat = (polygon_coords[0][0][1]+polygon_coords[0][1][1]+polygon_coords[0][2][1]+polygon_coords[0][3][1])/4;
+          console.log(c_location);
+        }
+        var contentString = tweet.embeddedTweet
+        var marker = new google.maps.Marker({
+          map: map,
+          draggable: false,
+          animation: google.maps.Animation.DROP,
+          position: c_location,
+          htmlContent: contentString,
+        });
+        google.maps.event.addListener(marker, 'click', function () {
+          infowindow.close()
+          infowindow.setContent(this.htmlContent);
+          infowindow.open(map, this);
+          google.maps.event.addListener(infowindow, 'domready', function () {
+              ! function (d, s, id) {
+                  var js, fjs = d.getElementsByTagName(s)[0];
+                  if (!d.getElementById(id)) {
+                      js = d.createElement(s);
+                      js.id = id;
+                      js.src = "//platform.twitter.com/widgets.js";
+                      fjs.parentNode.insertBefore(js, fjs);
+                  }
+              }(document, "script", "twitter-wjs");
+          });
+        });        
+      }
+
+      function getParameterByName(name, url) {
+          if (!url) {
+            url = window.location.href;
+          }
+          name = name.replace(/[\[\]]/g, "\\$&");
+          var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+              results = regex.exec(url);
+          if (!results) return null;
+          if (!results[2]) return '';
+          return decodeURIComponent(results[2].replace(/\+/g, " "));
+      }
+
+    </script>
+  </body>
+</html>
