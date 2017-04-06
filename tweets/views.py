@@ -9,7 +9,6 @@ from twitter_streaming import streamTwitter
 import re, json
 from kafka import KafkaConsumer
 from twitter_streaming import mytopic
-from furl import furl
 
 class Home(View):
 
