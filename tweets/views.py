@@ -85,7 +85,8 @@ class ConsumeTweets(View):
 		if not topic_name:
 			return JsonResponse({'count': 0,'data': [],'error':"Invalid Topic"})
 		print "Topic: "+topic_name
-		consumer = KafkaConsumer(topic_name,bootstrap_servers=['localhost:9092'])
+		consumer = KafkaConsumer(bootstrap_servers=['192.168.0.5:9092','192.168.0.4:9092'],auto_offset_reset='earliest')
+		consumer.subscribe([topic_name])
 		i=0
 		polled = consumer.poll(100,None)
 		while(bool(polled)==False):
@@ -95,7 +96,7 @@ class ConsumeTweets(View):
 				break
 		msgs=[]
 		for key in polled.keys():
-			if key.topic==mytopic:
+			if key.topic==topic_name:
 				msgrecords = polled.get(key,[])
 				for record in msgrecords:
 					tweet = json.loads(record.value)

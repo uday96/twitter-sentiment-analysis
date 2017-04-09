@@ -64,7 +64,8 @@ class StdOutListener(tweepy.StreamListener):
                 print "\n"+msg+"\n"                
                 try:
                     #write out to kafka topic
-                    producer = KafkaProducer(bootstrap_servers='localhost:9092')
+                    #producer = KafkaProducer(bootstrap_servers='localhost:9092')
+                    producer = KafkaProducer(bootstrap_servers=['192.168.0.5:9092','192.168.0.4:9092'])
                     future = producer.send(mytopic, (str(json.dumps(status._json, indent=4))+"\n"))
                     record_metadata = future.get(timeout=10)
                     print record_metadata.topic
