@@ -56,11 +56,6 @@
       function handleEvent(rectangle) {
         console.log("Rectangle created");
         var bounds = rectangle.getBounds();
-        console.log(bounds.toJSON());
-        console.log(bounds.toString());
-        console.log(bounds.getSouthWest().toJSON());
-        console.log(bounds.getNorthEast().toJSON());
-        console.log(bounds.getCenter().toJSON());
         document.getElementById("inputform")['LatLng'].value = bounds.toString();
         var geocoder;
         geocoder = new google.maps.Geocoder();
@@ -73,11 +68,23 @@
                         if (results[0]) {
                             var add= results[0].formatted_address ;
                             var  value=add.split(",");
-                            console.log(value);
                             count=value.length;
                             country=value[count-1];
                             state=value[count-2];
-                            var loc = country+" - "+state
+                            console.log(state);
+                            var statewords = state.split(" ");
+                            var pincode=statewords[statewords.length-1];
+                            var loc = country;
+                            if(isNaN(parseInt(pincode))){
+                              loc = loc +" - " + state;
+                            }
+                            else{
+                              var statename = "";
+                              for (var ind = 0; ind<statewords.length-1; ind++) {
+                                statename = statename+" "+statewords[ind];
+                              }
+                              loc = loc+" -"+statename;
+                            }
                             document.getElementById("inputform")['Location'].value = loc;
                         }
                         else  {
