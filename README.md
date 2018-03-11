@@ -1,4 +1,4 @@
-# **Twitter Play - Kafka** #
+# **Twitter - Sentiment Analysis** #
 
 Twitter Play - Kafka filters the real-time tweets based on the keywords and location (Latitude, Longitude bounds) provided and pushes them to Kafka. The filtered tweets are then visualised on a Map with respect to their geolocation.
 
@@ -21,25 +21,3 @@ Stream Listener is created using tweepy module which listens to all location fil
 
 
 ----------
-
-
-**Setup a kafka environment to use.**
--------------------
-
-Start a zookeeper server (basic) :
-> bin/zookeeper-server-start.sh config/zookeeper.properties
-
-Now start the Kafka server (basic):
-> bin/kafka-server-start.sh config/server.properties
-
-Create a topic named test in this script:
-> bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
-
-See that topic if we run the list topic command:
-> bin/kafka-topics.sh --list --zookeeper localhost:2181
-
-Start a producer for topic test:
-> bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test 
-
-Start a consumer to see data from producer:
-> bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
